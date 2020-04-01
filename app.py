@@ -11,39 +11,23 @@ api = Api(app)
 db = SQLAlchemy(app)
 port = int(os.getenv("PORT", 9009))
 
-a_language = api.model('Language', {'language' : fields.String('The language.')})
 class Name(db.Model):
     id = db.Column(db.Integer, nullable=True, primary_key=True)
     text = db.Column(db.String(20), nullable=False)
 
-languages = []
-python = {'language':'Python'}
-languages.append(python)
+a_name = api.model('Name',{'name' :fields.String('The name.')})
 
-@api.route('/language')
-class language(Resource):
+@api.route('/')
+class NameOperation(Resource):
     def get(self):
-        return languages
-    
-    @api.expect(a_language)
-    def post(self):
-        languages.append(api.payload)
-        return {'result':'Language added'}, 201
-
-
-@app.route('/', methods=['GET',"POST"])
-def index():
-    if request.method =="POST":
-        name = Name(text = request.form['text'])
-        try:
-            db.session.add(name)
-            db.session.commit()
-            return redirect('/')
-        except Exception as e:
-            return e
-    else:
         texts = list(map(lambda name: name.text,Name.query.all()))
-        return render_template('index.html', texts = texts)
+        return texts
+    @api.expect(a_name)
+    def post(self):
+        name = api.payload
+        db.session.add(name)
+        db.session.commit()
+        return {'result':'Name added'}, 201
 
 if __name__ == '__main__':
     db.create_all()
